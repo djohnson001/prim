@@ -1,9 +1,16 @@
 # prim
-OpenJSCad Primitive Library - Clone, group, and stack shapes.
+Primitive Library for OpenJSCad - Clone, group, and stack shapes.
+Creator: Doug Johnson
+License: GPL - https://www.gnu.org/licenses/gpl-3.0.en.html
+
+I am not affliated with OpenJSCad.
+
+Try it out at http://openjscad.org
 
 Scripts should be combined into a single javascript file.
 Then in the OpenJSCad script, add an include statement at the top.
 
+```javascript
 // This script renders a AA Battery.
 include('prim.js');
 
@@ -33,8 +40,10 @@ var battery = function () {
 var main = function () {
     return new battery().rotateX(90).render();
 };
+```
 
-Combine scripts in this orer.
+Combine scripts in this order.
+```javascript
 [
     "prim.units",
     "prim.primitive",
@@ -53,6 +62,7 @@ Combine scripts in this orer.
     "prim.group",
     "prim.stack"
     ]
+```    
 
 TODO: Add a grunt script so that this can be done on the fly.
-
+TODO: Add minification
