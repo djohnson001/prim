@@ -51,8 +51,9 @@ prim.primitive.prototype.postRender = function (item) {
         }
     }
 
-    if (this.internal.primitive && this.internal.primitive.color !== undefined && this.internal.primitive.color !== null) {
-        //result = result.setColor(this.internal.primitive.color);
+    var color = this.color();    
+    if (color !== undefined && color !== null) {
+        result = result.setColor(color);
     }
 
     return result;

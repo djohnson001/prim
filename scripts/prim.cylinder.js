@@ -60,6 +60,8 @@ prim.cylinder.prototype.cylinderBaseClone = prim.primitive.prototype.clone;
 
 prim.cylinder.prototype.clone = function (ctor) {
     var dest = this.cylinderBaseClone(ctor || prim.cylinder);
+    dest.internal.cylinder.radius2 = this.internal.cylinder.radius2;
+    dest.internal.cylinder.fn = this.internal.cylinder.fn;
 
     return dest;
 };
