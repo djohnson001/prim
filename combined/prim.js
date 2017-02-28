@@ -1,23 +1,60 @@
-// Sun Feb 19 2017 13:23:54 GMT-0500 (Eastern Standard Time)
+// Mon Feb 27 2017 20:16:47 GMT-0500 (Eastern Standard Time)
 
-// Doug Johnson
-// Primitive Library for OpenJSCad
-// https://github.com/djohnson001/prim
-// GPL License
 
 // BEGIN prim.units.js
 
 Number.prototype.inch = function() {
-    return 25.4*this;   //.valueOf() / 2;
-};
-
-Number.prototype.mm = function() {
-    return this;   //.valueOf() / 2;
+    return 25.4*this;
 };
 
 Number.prototype.inches = function () {
     return this.inch();
 }
+
+Number.prototype.foot = function() {
+    return (12*this).inch();
+};
+
+Number.prototype.feet = function() {
+    return (12*this).inch();
+};
+
+Number.prototype.mile = function() {
+    return (5280*this).foot();
+};
+
+Number.prototype.mm = function() {
+    return this;
+};
+
+Number.prototype.cm = function() {
+    return 1000 * this;
+};
+
+Number.prototype.m = function() {
+    return 1000 * this;
+};
+
+Number.prototype.meter = function() {
+    return 1000 * this;
+};
+
+Number.prototype.meters = function() {
+    return (this).meter();
+};
+
+Number.prototype.km = function() {
+    return (1000 * this).meter();
+};
+
+Number.prototype.kilometer = function() {
+    return (this).km();
+};
+
+Number.prototype.kilometers = function() {
+    return (this).km();
+};
+
 
 // END prim.units.js
 
@@ -76,9 +113,11 @@ prim.primitive.prototype.postRender = function (item) {
         }
     }
 
-    var color = this.color();    
-    if (color !== undefined && color !== null) {
-        result = result.setColor(color);
+    if (item.color !== undefined && item.color !== null) {
+        var color = item.color();    
+        if (color !== undefined && color !== null) {
+            result = result.setColor(color);
+        }
     }
 
     return result;
@@ -221,12 +260,110 @@ prim.primitive.prototype.center = function (val) {
     return this;
 };
 
+prim.primitive.prototype.union = function (model) {
+    return new prim.group().append(this).append(model);
+};
+
+prim.primitive.prototype.subtract = function (model) {
+    return new prim.group().append(this).subtract(model);
+};
+
 prim.primitive.prototype.log = function () {
     console.log(JSON.stringify(this));
 };
 
 
 // END prim.primitive.js
+
+
+// BEGIN prim.vector.js
+prim.vector = function (opts) {
+    this.internal = {};
+    this.internal.v = [];
+
+    if (opts === undefined || opts === null) {
+    }
+    else if (!isNaN(opts)) {
+        this.internal.v = [];
+        for(var index = 0; index < opts; index++) {
+            this.internal.v.push(0);
+        }
+    }
+    else if (typeof(opts) === "object") {
+        if (opts.type !== undefined && opts.type !== null && opts.type() === "vector") {
+            this.internal.v = opts.render();
+        }
+    }
+};
+
+prim.vector.prototype.index = function (i, val) {
+    if (val === undefined || val === null) {
+        return this.internal.v.length > i ? this.internal.v[i] : 0;
+    }
+
+    while (this.internal.v.length < i){
+        this.internal.v.push(0);
+    }
+
+    this.internal.v[i] = val;
+
+    return this;
+};
+
+prim.vector.prototype.x = function (val) {
+    return this.index(0, val);
+};
+
+prim.vector.prototype.y = function (val) {
+    return this.index(1, val);
+};
+
+prim.vector.prototype.z = function (val) {
+    return this.index(2, val);
+};
+
+prim.vector.prototype.add = function (val) {
+    if (val !== undefined && val !== null) {
+        if (!isNaN(val)) {
+            for (var index = 0; index < this.internal.v.length; index++) {
+                this.internal.v[index] += val;
+            }
+        } else if (typeof(val) === "object") {
+            var ar = (val.type !== undefined && val.type !== null && val.type() === "vector")
+                ? val.render()
+                : val;
+
+            for (var index = 0; index < val.length ; index++) {
+                if (index >= this.internal.v.length) {
+                    this.internal.v.push(val[index]);
+                } else {
+                    this.internal.v[index] += val[index];
+                }
+            }
+        }
+    }
+
+    return this;
+};
+
+prim.vector.prototype.type = function () {
+    return "vector";
+};
+
+prim.vector.prototype.clone = function () {
+    return new prim.vector(this);
+};
+
+prim.vector.prototype.render = function () {
+    var v = [];
+    for(var index = 0; index < this.internal.v.length; index++){
+        v.push(this.internal.v[index]);
+    }
+
+    return v;
+};
+
+// END prim.vector.js
 
 
 // BEGIN prim.transformation.base.js
@@ -274,7 +411,9 @@ prim.transformation.base.prototype.clone = function () {
     return new this.constructor().matrix(this.matrix());
 };
 
-
+prim.transformation.base.prototype.type = function () {
+    return this.internal.transformation.type;
+};
 // END prim.transformation.base.js
 
 
@@ -295,6 +434,7 @@ prim.transformation.translate.prototype.apply = function (item) {
 prim.transformation.translate.prototype.clone = function () {
     return new prim.transformation.translate().matrix(this.matrix());
 };
+
 // END prim.transformation.translate.js
 
 
@@ -330,12 +470,31 @@ prim.transformation.mirror.prototype = Object.create(prim.transformation.base.pr
 prim.transformation.mirror.prototype.apply = function (item) {
     var dict = ["mirroredX", "mirroredY", "mirroredZ"];
     var matrix = this.matrix();
+    
+    var transformationStack = this.internal;
+    
+    console.log(JSON.stringify(item));
+    /*
+    for(var index = 0; index < item.internal.primitive.transformationStack; index++) {
+        var transformation = item.internal.primitive.transformationStack[index];
+        if (transformation.type() === "translate") {
+            var translationMatrix = transformation.matrix();
+                for (var index = 0; index < matrix.length; index++) {
+                    if (matrix[index] == 1) {
+                        translationMatrix[index] = -translationMatrix[index];
+                    }
+                }
+            
+            transformation.matrix(translationMatrix);
+            
+        }
+    }*/
 
     for (var index = 0; index < matrix.length; index++) {
         if (matrix[index] == 1) {
             return item[dict[index]]();
         }
-    }
+    }    
 
     return item;
 };
@@ -770,6 +929,7 @@ prim.group = function(opts) {
     this.internal.group = {};
     this.internal.group.items = [];
     this.internal.group.stackDirection = 1;
+    this.internal.group.negatives = [];
 
     if (opts !== undefined && opts !== null && opts.constructor === Array) {
         this.internal.group.items = opts;
@@ -779,7 +939,26 @@ prim.group = function(opts) {
 prim.group.prototype = Object.create(prim.primitive.prototype);
 
 prim.group.prototype.append = function (item) {
-    this.internal.group.items.push(item);
+    var itemContainer = {
+        model: item,
+        isNegative: false
+    };
+
+    this.internal.group.items.push(itemContainer);
+    
+    return this;
+};
+
+prim.group.prototype.union = prim.group.prototype.append;
+
+prim.group.prototype.subtract = function (item) {
+    var itemContainer = {
+        model: item,
+        isNegative: true
+    };
+
+    this.internal.group.items.push(itemContainer);
+
     return this;
 };
 
@@ -787,12 +966,15 @@ prim.group.prototype.preRender = function () {
     var result = null;
 
     for (var index = 0; index < this.internal.group.items.length; index++) {
-        var item = this.internal.group.items[index];
+        // var item = this.internal.group.items[index];
+        var container = this.internal.group.items[index];
+        var item = container.model;
+
         var renderedItem = item.render ? item.render() : item;
 
         result = index === 0
             ? renderedItem
-            : result.union(renderedItem);
+            : (container.isNegative ? result.subtract(renderedItem) : result.union(renderedItem));
     }
 
     return result;
