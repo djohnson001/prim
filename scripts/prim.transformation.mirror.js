@@ -9,12 +9,31 @@ prim.transformation.mirror.prototype = Object.create(prim.transformation.base.pr
 prim.transformation.mirror.prototype.apply = function (item) {
     var dict = ["mirroredX", "mirroredY", "mirroredZ"];
     var matrix = this.matrix();
+    
+    var transformationStack = this.internal;
+    
+    console.log(JSON.stringify(item));
+    /*
+    for(var index = 0; index < item.internal.primitive.transformationStack; index++) {
+        var transformation = item.internal.primitive.transformationStack[index];
+        if (transformation.type() === "translate") {
+            var translationMatrix = transformation.matrix();
+                for (var index = 0; index < matrix.length; index++) {
+                    if (matrix[index] == 1) {
+                        translationMatrix[index] = -translationMatrix[index];
+                    }
+                }
+            
+            transformation.matrix(translationMatrix);
+            
+        }
+    }*/
 
     for (var index = 0; index < matrix.length; index++) {
         if (matrix[index] == 1) {
             return item[dict[index]]();
         }
-    }
+    }    
 
     return item;
 };

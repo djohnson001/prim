@@ -51,9 +51,11 @@ prim.primitive.prototype.postRender = function (item) {
         }
     }
 
-    var color = this.color();    
-    if (color !== undefined && color !== null) {
-        result = result.setColor(color);
+    if (item.color !== undefined && item.color !== null) {
+        var color = item.color();    
+        if (color !== undefined && color !== null) {
+            result = result.setColor(color);
+        }
     }
 
     return result;
@@ -194,6 +196,14 @@ prim.primitive.prototype.center = function (val) {
     this._center = val;
 
     return this;
+};
+
+prim.primitive.prototype.union = function (model) {
+    return new prim.group().append(this).append(model);
+};
+
+prim.primitive.prototype.subtract = function (model) {
+    return new prim.group().append(this).subtract(model);
 };
 
 prim.primitive.prototype.log = function () {

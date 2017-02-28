@@ -42,3 +42,6 @@ prim.transformation.base.prototype.clone = function () {
     return new this.constructor().matrix(this.matrix());
 };
 
+prim.transformation.base.prototype.type = function () {
+    return this.internal.transformation.type;
+};

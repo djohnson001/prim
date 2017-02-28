@@ -1,8 +1,8 @@
-// Sat Feb 18 2017 13:38:00 GMT-0500 (Eastern Standard Time)
+// Sun Feb 19 2017 13:23:54 GMT-0500 (Eastern Standard Time)
+
 // Doug Johnson
 // Primitive Library for OpenJSCad
 // https://github.com/djohnson001/prim
-//
 // GPL License
 
 // BEGIN prim.units.js
@@ -76,8 +76,9 @@ prim.primitive.prototype.postRender = function (item) {
         }
     }
 
-    if (this.internal.primitive && this.internal.primitive.color !== undefined && this.internal.primitive.color !== null) {
-        //result = result.setColor(this.internal.primitive.color);
+    var color = this.color();    
+    if (color !== undefined && color !== null) {
+        result = result.setColor(color);
     }
 
     return result;
@@ -418,6 +419,8 @@ prim.cylinder.prototype.cylinderBaseClone = prim.primitive.prototype.clone;
 
 prim.cylinder.prototype.clone = function (ctor) {
     var dest = this.cylinderBaseClone(ctor || prim.cylinder);
+    dest.internal.cylinder.radius2 = this.internal.cylinder.radius2;
+    dest.internal.cylinder.fn = this.internal.cylinder.fn;
 
     return dest;
 };
